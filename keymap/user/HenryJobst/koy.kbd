@@ -22,9 +22,9 @@
 (defsrc
   esc  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   grv       1    2    3    4    5    6    7    8    9    0    -    =    bspc
-  tab       q    w    e    r    t    z    u    i    o    p    [    ]    
+  tab       q    w    e    r    t    y    u    i    o    p    [    ]    
   caps      a    s    d    f    g    h    j    k    l    ;    '    \    ret
-  lsft 102d y    x    c    v    b    n    m    ,    .    /    rsft
+  lsft 102d z    x    c    v    b    n    m    ,    .    /    rsft
   lctl      lmet lalt          spc             ralt rmet cmp  rctl
 )
 
@@ -32,8 +32,8 @@
   esc  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   tab       1    2    3    4    5    6    7    8    9    0    -    =    bspc
   lmet      k    .    @o   ,    y    v    g    @csp l    ß    z    ´
-  @lv3      @hs  @aw  @ec  @i4  u    d    @t4  @rc  @nw  @ss  f    @lv3 ret
-  lsft @lv4 x    @qa  @ä3  ü    ö    b    @p3  @wa  m    j    rsft
+  @lv3      @h3  @as  @ec  @i4  u    d    @t4  @rc  @ns  @s3  @f3    @lv3 ret
+  lsft @z2  @xw  @qa  @ä3  ü    ö    b    @p3  @wa  @mw  @j2  rsft
   lctl      lmet lalt          spc             @lv4 rmet @ctlc _
 )
 
@@ -42,7 +42,7 @@
   S-tab     °    §    @ℓ   »    «    $    €    „    “    ”    —    ¸    _
   lmet      K    •    O    ,    Y    V    G    C    L    ß    Z    ´
   _         H    A    E    I    U    D    T    R    N    S    F    _    _
-  XX   @lv4 X    Q    Ä    _    Ö    B    P    W    M    J    XX
+  XX   XX   X    Q    Ä    _    Ö    B    P    W    M    J    XX
   lctl      lmet lalt          spc             @lv4 rmet _    _
 )
 
@@ -156,21 +156,34 @@
 )
 
 (defalias
-  hs (tap-hold-next-release 500 h lsft)
-  aw (tap-hold-next-release 500 a lmet)
-  ec (tap-hold-next-release 500 e lctl)
-  i4 (tap-hold-next-release 500 i @lv4)
-  j2 (tap-hold-next-release 500 j @lv2)
-  qa (tap-hold-next-release 500 q lalt)
+
+  ;; Modifier for Level 2
+  z2 (tap-hold-next-release 500 z @lv2) ;; additional z and level 2 on level4-mod position, 
+  j2 (tap-hold-next-release 500 j @lv2) ;; additional level2 on j position
+  as (tap-hold-next-release 500 a @lv2) ;; additional level2 on a position
+  ns (tap-hold-next-release 500 n @lv2) ;; additional level2 on n position
+  
+  ;; Modifier for Level 3
+  h3 (tap-hold-next-release 500 h @lv3) ;; additional level3 on h position
+  s3 (tap-hold-next-release 500 s @lv3) ;; additional level3 on s position
   ä3 (tap-hold-next-release 500 ä @lv3)
+  p3 (tap-hold-next-release 500 p @lv3)
+  f3 (tap-hold-next-release 500 f @lv3)
+
+
+  ec (tap-hold-next-release 500 e lctl)
+  rc (tap-hold-next-release 500 r rctl)
+
+  i4 (tap-hold-next-release 500 i @lv4)
+  t4 (tap-hold-next-release 500 t @lv4)
+
+  qa (tap-hold-next-release 500 q lalt)
+  wa (tap-hold-next-release 500 w lalt)
+  
+  xw (tap-hold-next-release 500 x lmet)
+  mw (tap-hold-next-release 500 m rmet)
 
   csp (tap-hold-next-release 500 c @spl)
-  p3  (tap-hold-next-release 500 p @lv3)
-  wa  (tap-hold-next-release 500 w lalt)
-  t4  (tap-hold-next-release 500 t @lv4)
-  rc  (tap-hold-next-release 500 r rctl)
-  nw  (tap-hold-next-release 500 n rmet)
-  ss  (tap-hold-next-release 500 s rsft)
 
   ;; ralt = compose key when tapped, rctl when held down
   ctlc (tap-hold-next-release 500 ralt rctl)
