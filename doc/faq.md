@@ -1,35 +1,58 @@
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
+
+- [Linux](#linux)
+    - [Q: How do I get Uinput permissions?](#q-how-do-i-get-uinput-permissions)
+    - [Q: How do I know which event-file corresponds to my keyboard?](#q-how-do-i-know-which-event-file-corresponds-to-my-keyboard)
+    - [Q: How do I emit Hyper_L?](#q-how-do-i-emit-hyper_l)
+    - [Q: How does Unicode entry work?](#q-how-does-unicode-entry-work)
+    - [Q: How do I use the same layout definition for different keyboards](#q-how-do-i-use-the-same-layout-definition-for-different-keyboards)
+- [Windows](#windows)
+    - [How do I start KMonad?](#how-do-i-start-kmonad)
+        - [Using the command-line](#using-the-command-line)
+        - [Making a launcher](#making-a-launcher)
+- [Mac](#mac)
+    - [Q: How to use the special features printed on Apple function keys?](#q-how-to-use-the-special-features-printed-on-apple-function-keys)
+- [General](#general)
+    - [Q: Why doesn't the 'Print' keycode work for my print screen button?](#q-why-doesnt-the-print-keycode-work-for-my-print-screen-button)
+    - [Q: Why can't I remap the Fn key on my laptop?](#q-why-cant-i-remap-the-fn-key-on-my-laptop)
+    - [Q: When I run KMonad I get error `Not available under this OS`](#q-when-i-run-kmonad-i-get-error-not-available-under-this-os)
+
+<!-- markdown-toc end -->
+
 ## Linux
 
 ### Q: How do I get Uinput permissions?
 
-A: In Linux KMonad needs to be able to access the uinput subsystem to inject
+A: In Linux KMonad needs to be able to access the `input` and `uinput` subsystem to inject
 events. To do this, your user needs to have permissions. To achieve this, take
 the following steps:
 
-If the `uinput` group does not exist, check whether your system has an `input`
-group and try adding your user to that one instead. If this does not work,
-create a new group with:
+If the `uinput` group does not exist, create a new group with:
 
-1. Make sure the 'uinput' group exists
+1. Make sure the `uinput` group exists
 
 ``` shell
 sudo groupadd uinput
 ```
 
-2. Add your user to the 'uinput' group:
+2. Add your user to the `input` and the `uinput` group:
 ``` shell
+sudo usermod -aG input username
 sudo usermod -aG uinput username
 ```
 
+Make sure that it's effective by running `groups`. You might have to logout and login.
+
 3. Make sure the uinput device file has the right permissions:
-Add a udev rule (in either `/etc/dev/rules.d` or `/lib/udev/rules.d`) with the
+Add a udev rule (in either `/etc/udev/rules.d` or `/lib/udev/rules.d`) with the
 following content:
 ```shell
 KERNEL=="uinput", MODE="0660", GROUP="uinput", OPTIONS+="static_node=uinput"
 ```
 
 4. Make sure the `uinput` drivers are loaded.
-You will probably have to run this command whenever you start kmonad for the first time.
+You will probably have to run this command whenever you start `kmonad` for the first time.
 ``` shell
 sudo modprobe uinput
 ```
@@ -37,20 +60,50 @@ sudo modprobe uinput
 
 ### Q: How do I know which event-file corresponds to my keyboard?
 
-A: By far the best solution is to use the keyboard devices listed under `/dev/input/by-id`. If you can't figure out which file just by the filenames, the `evtest` program is very helpful.
-
+A: By far the best solution is to use the keyboard devices listed
+under `/dev/input/by-id`. In some case, you could also try
+`/dev/input/by-path`. If you can't figure out which file just by
+the filenames, the `evtest` program is very helpful.
 
 ### Q: How do I emit Hyper_L?
 
 A: `Hyper_L` is not a core Linux keycode, but is X11 specific instead. KMonad
 tries to stay as close to the kernel as possible, so you can run it on other
 OSes or without X11. If you want `Hyper_L` to work, you have to make sure that
-X11 lines up well with KMonad. See [this issue](https://github.com/david-janssen/kmonad/issues/22) for more explanation.
+X11 lines up well with KMonad. See [this issue](https://github.com/kmonad/kmonad/issues/22) for more explanation.
 
 ### Q: How does Unicode entry work?
 
 A: Unicode entry works via X11 compose-key sequences. For information on how to
 configure kmonad to make use of this, please see [the tutorial](../keymap/tutorial.kbd).
+
+### Q: How do I use the same layout for different keyboards
+
+A:
+Create a layout file with an environment variable instead of `device-file` option, i.e. `kmonad.kbd`.
+
+```
+(defcfg
+	input (device-file "$KBD_DEV")
+	output (uinput-sink "KMonad kbd")
+	fallthrough true
+	cmp-seq lctl
+)
+```
+
+Use following shell script to list available keyboard devices and select one of them. You will need
+[fzf](https://github.com/junegunn/fzf) and kmonad available in your `$PATH`.
+
+```bash
+#!/bin/bash
+
+KBD_DEV=$(find /dev/input/by-path/*kbd* | fzf)
+export KBD_DEV
+KBDCFG=$(envsubst < kmonad.kbd)
+
+kmonad <(echo "$KBDCFG")
+```
+
 
 ## Windows
 
@@ -149,7 +202,7 @@ example.
 
 A: Because the Keycode for "print screen" is actually 'SysReq' ("ssrq" or "sys")
 for relatively interesting historical reasons. Have a look at [this
-issue](https://github.com/david-janssen/kmonad/issues/59) if you want more
+issue](https://github.com/kmonad/kmonad/issues/59) if you want more
 information.
 
 ### Q: Why can't I remap the Fn key on my laptop?
@@ -160,3 +213,20 @@ creating a numpad in the middle of the laptop keyboard. This remapping happens
 in the hardware, before any event is ever registered with the operating system,
 therefore KMonad has no way to 'get' at any of those events. This means that we
 cannot remap them in any way.
+
+### Q: When I run KMonad I get error `Not available under this OS`
+
+A: This error occurs when there are OS-specific options in the used configuration
+file. Usually this happens when you are on windows, try to run the tutorial
+file and do not comment out or delete the Linux options in `defcfg` and
+uncomment the Windows options. Nevertheless, this still can happen on other
+operating systems, the error message changes slightly based on the operating
+system (e.g. `Not available under this OS: LowLevelHookSource`, `Not available
+under this OS: DeviceSource`), but they all start with `Not available under
+this OS` and all have the same solution.
+
+TL;DR: Make sure the options in `defcfg` are for your operating system.
+
+### Q: Where can I find a list of keycodes which can be used in KMonad?
+
+A: List of keycodes can be found [here.](https://github.com/kmonad/kmonad/blob/master/src/KMonad/Keyboard/Keycode.hs)

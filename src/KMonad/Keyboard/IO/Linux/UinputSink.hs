@@ -29,7 +29,7 @@ import Foreign.C.String
 import Foreign.C.Types
 import System.Posix
 import UnliftIO.Async   (async)
-import UnliftIO.Process (callCommand)
+import UnliftIO.Process (spawnCommand)
 
 import KMonad.Keyboard.IO.Linux.Types
 import KMonad.Util
@@ -44,6 +44,7 @@ data UinputSinkError
   = UinputRegistrationError SinkId               -- ^ Could not register device
   | UinputReleaseError      SinkId               -- ^ Could not release device
   | SinkEncodeError         SinkId LinuxKeyEvent -- ^ Could not decode event
+  | EmptyNameError                               -- ^ Invalid name
   deriving Exception
 
 instance Show UinputSinkError where
@@ -55,6 +56,7 @@ instance Show UinputSinkError where
     , "to bytes for writing to"
     , snk
     ]
+  show EmptyNameError = "Provided empty name for Uinput keyboard"
 
 makeClassyPrisms ''UinputSinkError
 
@@ -129,7 +131,7 @@ send_event :: ()
   -> LinuxKeyEvent
   -> RIO e ()
 send_event u (Fd h) e@(LinuxKeyEvent (s', ns', typ, c, val)) = do
-  (liftIO $ c_send_event h typ c val s' ns')
+  liftIO (c_send_event h typ c val s' ns')
     `onErr` SinkEncodeError (u^.cfg.keyboardName) e
 
 
@@ -138,13 +140,14 @@ send_event u (Fd h) e@(LinuxKeyEvent (s', ns', typ, c, val)) = do
 -- | Create a new UinputSink
 usOpen :: HasLogFunc e => UinputCfg -> RIO e UinputSink
 usOpen c = do
+  when (null $ c ^. keyboardName) $ throwM EmptyNameError
   fd <- liftIO . openFd "/dev/uinput" WriteOnly Nothing $
     OpenFileFlags False False False True False
   logInfo "Registering Uinput device"
   acquire_uinput_keysink fd c `onErr` UinputRegistrationError (c ^. keyboardName)
   flip (maybe $ pure ()) (c^.postInit) $ \cmd -> do
     logInfo $ "Running UinputSink command: " <> displayShow cmd
-    void . async . callCommand $ cmd
+    void . async . spawnCommand $ cmd
   UinputSink c <$> newMVar fd
 
 -- | Close a 'UinputSink'
@@ -152,18 +155,18 @@ usClose :: HasLogFunc e => UinputSink -> RIO e ()
 usClose snk = withMVar (snk^.st) $ \h -> finally (release h) (close h)
   where
     release h = do
-      logInfo $ "Unregistering Uinput device"
+      logInfo "Unregistering Uinput device"
       release_uinput_keysink h
         `onErr` UinputReleaseError (snk^.cfg.keyboardName)
 
     close h = do
-      logInfo $ "Closing Uinput device file"
+      logInfo "Closing Uinput device file"
       liftIO $ closeFd h
 
 -- | Write a keyboard event to the sink and sync the driver state. Using an MVar
 -- ensures that we can never have 2 threads try to write at the same time.
 usWrite :: HasLogFunc e => UinputSink -> KeyEvent -> RIO e ()
 usWrite u e = withMVar (u^.st) $ \fd -> do
-  now <- liftIO $ getSystemTime
+  now <- liftIO getSystemTime
   send_event u fd . toLinuxKeyEvent e $ now
   send_event u fd . sync              $ now

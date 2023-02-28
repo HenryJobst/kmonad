@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-|
 Module      : KMonad.Keyboard.IO
 Description : The logic behind sending and receiving key events to the OS
@@ -26,7 +25,7 @@ where
 
 import KMonad.Prelude
 
-import KMonad.Keyboard
+import KMonad.Keyboard.Types
 import KMonad.Util
 
 import qualified RIO.Text as T

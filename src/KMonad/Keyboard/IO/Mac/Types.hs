@@ -83,7 +83,7 @@ fromMacKeycode = flip M.lookup kcMap
 -- | Lookup the correspondig 'MacKeycode' for this 'Keycode'
 toMacKeycode :: Keycode -> Maybe MacKeycode
 toMacKeycode = flip M.lookup revMap
-  where revMap = M.fromList $ (M.toList kcMap) ^.. folded . swapped
+  where revMap = M.fromList $ M.toList kcMap ^.. folded . swapped
 
 -- | Convert a 'KeyEvent' to a 'MacKeyEvent'
 --
@@ -117,7 +117,7 @@ fromMacKeyEvent (MacKeyEvent (s, (p, u)))
 -- See https://opensource.apple.com/source/IOHIDFamily/IOHIDFamily-315.7.16/IOHIDFamily/IOHIDUsageTables.h
 -- See https://opensource.apple.com/source/IOHIDFamily/IOHIDFamily-700/IOHIDFamily/AppleHIDUsageTables.h.auto.html
 kcMap :: M.HashMap MacKeycode Keycode
-kcMap = M.fromList $
+kcMap = M.fromList
   [ ((0x7,0x4), KeyA)
   , ((0x7,0x5), KeyB)
   , ((0x7,0x6), KeyC)
@@ -292,11 +292,13 @@ kcMap = M.fromList $
   , ((0xC,0xB5), KeyNextSong)
   , ((0xC,0xB6), KeyPreviousSong)
   , ((0xC,0xCD), KeyPlayPause)
+  , ((0xC,0xCF), KeyDictation)
   , ((0xFF,0x3), KeyFn)
   , ((0xFF,0x4), KeyBrightnessUp)
   , ((0xFF,0x5), KeyBrightnessDown)
   , ((0xFF,0x8), KeyKbdIllumUp)
   , ((0xFF,0x9), KeyKbdIllumDown)
+  , ((0xFF01,0x1), KeySpotlight)
   , ((0xFF01,0x4), KeyLaunchpad)
   , ((0xFF01,0x10), KeyMissionCtrl)
   ]

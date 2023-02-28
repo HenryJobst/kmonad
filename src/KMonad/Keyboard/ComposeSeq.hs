@@ -135,6 +135,8 @@ ssComposed =
     , ("` E"      , 'È'     , "Egrave")
     , ("' E"      , 'É'     , "Eacute")
     , ("^ E"      , 'Ê'     , "Ecircumflex")
+    , ("^ U"      , 'Û'     , "Ucircumflex")
+    , ("` U"      , 'Ù'     , "Ugrave")
     , ("\" E"     , 'Ë'     , "Ediaeresis")
     , ("` I"      , 'Ì'     , "Igrave")
     , ("' I"      , 'Í'     , "Iacute")
@@ -148,6 +150,7 @@ ssComposed =
     , ("~ O"      , 'Õ'     , "Otilde")
     , ("\" O"     , 'Ö'     , "Odiaeresis")
     , ("\" U"     , 'Ü'     , "Udiaeresis")
+    , ("' U"      , 'Ú'     , "Uacute")
     , ("x x"      , '×'     , "multiply")
     , ("/ O"      , 'Ø'     , "Oslash")
     , ("' Y"      , 'Ý'     , "Yacute")
@@ -725,9 +728,11 @@ ssComposed =
     , ("_ '"      , '⍘'     , "U2358")
     , ("0 ~"      , '⍬'     , "U236c")
     , ("| ~"      , '⍭'     , "U236d")
+    , ("c /"      , '¢'     , "cent" )
+    , ("< _"      , '≤'     , "U2264")
+    , ("> _"      , '≥'     , "U2265")
 
     -- Sequences that should exist but do not work
     --, ("^ spc", '^', "asciicircum") -- This overlaps with the normal 'shifted-6' macro for
     -- , ("' j", 'j́', "jacute")
     ]
-

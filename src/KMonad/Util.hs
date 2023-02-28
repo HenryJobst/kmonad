@@ -15,6 +15,7 @@ module KMonad.Util
   ( -- * Time units and utils
     -- $time
     Milliseconds
+  , unMS
   , tDiff
 
     -- * Random utility helpers that have no better home
@@ -41,7 +42,7 @@ import Data.Time.Clock.System
 --
 
 -- | Newtype wrapper around 'Int' to add type safety to our time values
-newtype Milliseconds = Milliseconds Int
+newtype Milliseconds = Milliseconds { unMS :: Int }
   deriving (Eq, Ord, Num, Real, Enum, Integral, Show, Read, Generic, Display)
 
 -- | Calculate how much time has elapsed between 2 time points
@@ -72,7 +73,7 @@ onErr a err = a >>= \ret -> when (ret == -1) $ throwIO err
 
 -- | Embed the action of using an 'Acquire' in a continuation monad
 using :: Acquire a -> ContT r (RIO e) a
-using dat = ContT $ (\next -> with dat $ \a -> next a)
+using dat = ContT (\next -> with dat $ \a -> next a)
 
 
 -- | Log an error message and then rethrow the error
@@ -94,7 +95,7 @@ logRethrow t e = do
 withLaunch :: HasLogFunc e
   => Text                   -- ^ The name of this process (for logging)
   -> RIO e a                -- ^ The action to repeat forever
-  -> ((Async a) -> RIO e b) -- ^ The foreground action to run
+  -> (Async a -> RIO e b) -- ^ The foreground action to run
   -> RIO e b                -- ^ The resulting action
 withLaunch n a f = do
   logInfo $ "Launching process: " <> display n
